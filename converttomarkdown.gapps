@@ -127,24 +127,33 @@ function processParagraph(index, element, inSrc, imageCounter, listCounters) {
       textElements.push(txt);
     } else if (t === DocumentApp.ElementType.INLINE_IMAGE) {
       result.images = result.images || [];
-      var contentType = element.getChild(i).getBlob().getContentType();
-      var extension = "";
-      if (/\/png$/.test(contentType)) {
-        extension = ".png";
-      } else if (/\/gif$/.test(contentType)) {
-        extension = ".gif";
-      } else if (/\/jpe?g$/.test(contentType)) {
-        extension = ".jpg";
-      } else {
-        throw "Unsupported image type: "+contentType;
+      var location = element.getChild(i).getLinkUrl();
+      
+      // Optionally used link location for image source
+      if(location)
+      {
+        textElements.push('![TODO: ADD ALT]('+location+')');
       }
-      var name = imagePrefix + imageCounter + extension;
-      imageCounter++;
-      textElements.push('![image alt text]('+name+')');
-      result.images.push( {
-        "bytes": element.getChild(i).getBlob().getBytes(), 
-        "type": contentType, 
-        "name": name});
+      else{
+        var contentType = element.getChild(i).getBlob().getContentType();
+        var extension = "";
+        if (/\/png$/.test(contentType)) {
+          extension = ".png";
+        } else if (/\/gif$/.test(contentType)) {
+          extension = ".gif";
+        } else if (/\/jpe?g$/.test(contentType)) {
+          extension = ".jpg";
+        } else {
+          throw "Unsupported image type: "+contentType;
+        }
+        var name = imagePrefix + imageCounter + extension;
+        imageCounter++;
+        textElements.push('![TODO: ADD ALT]('+name+')');
+        result.images.push( {
+          "bytes": element.getChild(i).getBlob().getBytes(), 
+          "type": contentType, 
+          "name": name}); 
+      }
     } else if (t === DocumentApp.ElementType.PAGE_BREAK) {
       // ignore
     } else if (t === DocumentApp.ElementType.HORIZONTAL_RULE) {
@@ -262,7 +271,7 @@ function processTextElement(inSrc, txt) {
         off=attrs[i];
         url=txt.getLinkUrl(off);
       }
-      pOut=pOut.substring(0, off)+'['+pOut.substring(off, lastOff)+']('+url+')'+pOut.substring(lastOff);
+      pOut=pOut.substring(0, off)+'['+pOut.substring(off, lastOff)+']('+url+'){:target="_blank"}'+pOut.substring(lastOff);
     } else if (font) {
       if (!inSrc && font===font.COURIER_NEW) {
         while (i>=1 && txt.getFontFamily(attrs[i-1]) && txt.getFontFamily(attrs[i-1])===font.COURIER_NEW) {
